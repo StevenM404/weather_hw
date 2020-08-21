@@ -1,7 +1,8 @@
 var APIKey = "da0e664c32e860b800b65c5a89f191d3";
+var searchHistory = JSON.parse(localStorage.getItem("search")) || [];
+console.log(searchHistory);
 
-$("#searchButton").on("click", function() {
-    var city = $("#searchCity").val();
+function displayWeather(city) {
     var queryURL = "https://api.openweathermap.org/data/2.5/weather?" +
     "q=" + city + "&appid=" + APIKey + "&units=imperial";
 
@@ -23,7 +24,7 @@ $("#searchButton").on("click", function() {
 
         var lat = response.coord.lat;
         var lon = response.coord.lon;
-        var UVqueryURL = "http://api.openweathermap.org/data/2.5/uvi?appid=" + APIKey + "&lat=" + lat + "&lon=" + lon;
+        var UVqueryURL = "https://api.openweathermap.org/data/2.5/uvi?appid=" + APIKey + "&lat=" + lat + "&lon=" + lon;
         $.ajax({
             url: UVqueryURL,
             method: "GET"
@@ -32,5 +33,32 @@ $("#searchButton").on("click", function() {
             $("#uv").text("UV Index: " + response.value);
         })
     })
-    
+}
+
+$("#searchButton").on("click", function() {
+    var city = $("#searchCity").val();
+    displayWeather(city);
+    searchHistory.push(city);
+    localStorage.setItem("search",JSON.stringify(searchHistory));
+    makeList();
 })
+
+function makeList() {
+    $("#locationList").html = "";
+    for (var i = 0; i < searchHistory.length; i++) {
+        var locationItem = document.createElement("input");
+        locationItem.setAttribute("type","text");
+        locationItem.setAttribute("readonly",true);
+        locationItem.setAttribute("class","form-control d-block");
+        locationItem.setAttribute("value",searchHistory[i]);
+        locationItem.addEventListener("click",function() {
+            displayWeather(locationItem.value);
+        })
+        $("#locationList").append(locationItem);
+    }
+}
+
+makeList();
+if (searchHistory.length > 0) {
+    displayWeather(searchHistory[searchHistory.length - 1]);
+}
